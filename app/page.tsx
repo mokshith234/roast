@@ -32,6 +32,7 @@ export default function Home() {
   const [loadingStep, setLoadingStep] = useState(0);
   
   const [targetRole, setTargetRole] = useState("");
+  const [customRole, setCustomRole] = useState("");
 
   const [resumeMode, setResumeMode] = useState<"pdf" | "text">("pdf");
   const [resumeName, setResumeName] = useState<string | null>(null);
@@ -159,6 +160,7 @@ export default function Home() {
     setTypedRoast("");
     setLoadingStep(0);
 
+    const actualRole = targetRole === "Other" ? customRole.trim() : targetRole;
     try {
       const res = await fetch("/api/roast", {
         method: "POST",
@@ -167,7 +169,7 @@ export default function Home() {
           resumeText,
           jdText: jdText.trim().length > 10 ? jdText : null, 
           intensity,
-          targetRole
+          targetRole: actualRole
         }),
       });
       const data = await res.json();
@@ -203,11 +205,12 @@ export default function Home() {
 
   const handleFixIt = async () => {
     setState("fixing");
+    const actualRole = targetRole === "Other" ? customRole.trim() : targetRole;
     try {
       const res = await fetch("/api/create-order", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ resumeText, jdText, dreamJob: targetRole })
+        body: JSON.stringify({ resumeText, jdText, dreamJob: actualRole })
       });
       const data = await res.json();
       if (data.error || !data.id) throw new Error(data.error || "Failed to create order");
@@ -282,7 +285,8 @@ export default function Home() {
   ];
 
   const roles = ["Software Engineer", "Data Analyst", "Product Manager", "Marketing", "Design", "Finance", "Other"];
-  const isReady = resumeText.trim().length > 10 && targetRole.length > 0;
+  const actualRole = targetRole === "Other" ? customRole.trim() : targetRole;
+  const isReady = resumeText.trim().length > 10 && actualRole.length > 0;
 
   return (
     <div className="min-h-screen bg-black text-gray-100 flex flex-col items-center py-16 px-4 font-sans overflow-hidden relative">
@@ -320,6 +324,23 @@ export default function Home() {
                 {roles.map(r => <option key={r} value={r} className="bg-gray-900">{r}</option>)}
               </select>
             </motion.div>
+
+            {/* CUSTOM ROLE INPUT */}
+            {targetRole === "Other" && (
+              <motion.div 
+                initial={{ opacity: 0, y: -10 }} 
+                animate={{ opacity: 1, y: 0 }}
+                className="w-full max-w-md mb-8 flex flex-col items-center"
+              >
+                <input
+                  type="text"
+                  value={customRole}
+                  onChange={(e) => setCustomRole(e.target.value)}
+                  placeholder="Enter your dream job title..."
+                  className="w-full bg-gray-900/80 border border-white/20 text-white rounded-xl p-4 outline-none focus:border-cyan-500 transition-all text-center font-bold text-lg placeholder-gray-600 shadow-[0_0_15px_rgba(255,255,255,0.05)]"
+                />
+              </motion.div>
+            )}
 
             {/* Intensity Selector */}
             <motion.div variants={itemVariants} className="flex flex-col md:flex-row gap-4 w-full max-w-3xl justify-center mb-12">
