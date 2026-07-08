@@ -130,6 +130,7 @@ function RealityCheckPanel({ markdown }: { markdown: string }) {
 
 function SuccessContent() {
   const searchParams = useSearchParams();
+  const [orderId, setOrderId] = useState<string | null>(null);
   const [resumeText, setResumeText] = useState("");
   const [realityCheck, setRealityCheck] = useState<string | null>(null);
   const [error, setError] = useState("");
@@ -145,16 +146,23 @@ function SuccessContent() {
   const [feedbackSubmitted, setFeedbackSubmitted] = useState(false);
   const [feedbackSubmitting, setFeedbackSubmitting] = useState(false);
 
+  // Resolve order ID
+  useEffect(() => {
+    let id = searchParams.get("orderId");
+    if (!id && typeof window !== "undefined") {
+      id = localStorage.getItem("pending_order_id");
+    }
+    setOrderId(id);
+  }, [searchParams]);
+
   // Check if feedback was already submitted
   useEffect(() => {
-    const orderId = searchParams.get("orderId");
     if (orderId && localStorage.getItem(`feedback_${orderId}`)) {
       setFeedbackSubmitted(true);
     }
-  }, [searchParams]);
+  }, [orderId]);
 
   const handleFeedbackSubmit = async () => {
-    const orderId = searchParams.get("orderId");
     if (!orderId || feedbackRating === 0) return;
 
     setFeedbackSubmitting(true);
@@ -204,14 +212,17 @@ function SuccessContent() {
   useEffect(() => {
     const generateFixedResume = async () => {
       try {
-        const orderId = searchParams.get("orderId");
-        if (!orderId) {
+        let currentOrderId = searchParams.get("orderId");
+        if (!currentOrderId && typeof window !== "undefined") {
+          currentOrderId = localStorage.getItem("pending_order_id");
+        }
+        if (!currentOrderId) {
           setError("No order ID provided. Are you sure you paid?");
           return;
         }
 
         // 1. Check local storage first to prevent reloading the API on refresh
-        const cachedResume = localStorage.getItem(`fixed_resume_${orderId}`);
+        const cachedResume = localStorage.getItem(`fixed_resume_${currentOrderId}`);
         let fullText = "";
 
         if (cachedResume) {
@@ -223,7 +234,7 @@ function SuccessContent() {
             process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
           );
 
-          const { data: dbData, error: dbError } = await supabase.from('orders').select('*').eq('razorpay_order_id', orderId).single();
+          const { data: dbData, error: dbError } = await supabase.from('orders').select('*').eq('razorpay_order_id', currentOrderId).single();
 
           if (dbError || !dbData) {
             setError("Could not find your order in the database. Please contact support.");
@@ -261,7 +272,7 @@ function SuccessContent() {
           }
 
           // 3. Save to localStorage to protect against page refreshes
-          localStorage.setItem(`fixed_resume_${orderId}`, fullText);
+          localStorage.setItem(`fixed_resume_${currentOrderId}`, fullText);
         }
         
         const delimiterStart = "===REALITY_CHECK_START===";
@@ -459,7 +470,7 @@ function SuccessContent() {
         <h1 className="text-4xl md:text-5xl font-black mb-2 text-[#39FF14] tracking-widest uppercase drop-shadow-[0_0_20px_rgba(57,255,20,0.5)]">
           Payment Verified
         </h1>
-        <p className="text-gray-500 font-mono text-sm">Order ID: {searchParams.get("orderId")}</p>
+        <p className="text-gray-500 font-mono text-sm">Order ID: {orderId}</p>
       </motion.div>
 
       {/* LOADING STATE */}

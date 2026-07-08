@@ -216,60 +216,11 @@ export default function Home() {
       if (data.error || !data.id) throw new Error(data.error || "Failed to create order");
       const { id } = data;
 
-      const options = {
-        key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || "rzp_test_TAdxZBntwtq9bb",
-        amount: 4900,
-        currency: "INR",
-        name: "RoastMyResume.ai",
-        description: "Resume Fix",
-        order_id: id,
-        handler: async function (response: any) {
-          try {
-            const verifyRes = await fetch("/api/verify-payment", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                razorpay_order_id: response.razorpay_order_id,
-                razorpay_payment_id: response.razorpay_payment_id,
-                razorpay_signature: response.razorpay_signature,
-              }),
-            });
-            const verifyData = await verifyRes.json();
-            if (verifyData.success) {
-              router.push(`/success?orderId=${response.razorpay_order_id}`);
-            } else {
-              alert("Payment verification failed! " + (verifyData.error || ""));
-              setState("roasted");
-            }
-          } catch (e: any) {
-            alert("Verification error: " + e.message);
-            setState("roasted");
-          }
-        },
-        prefill: { name: "Desperate Job Seeker", email: "hireme@please.com" },
-        theme: { color: "#00ffff" },
-        modal: {
-          ondismiss: function() {
-            console.log("Razorpay modal dismissed");
-            setState("roasted");
-          }
-        }
-      };
+      // Save the pending order ID to localStorage
+      localStorage.setItem("pending_order_id", id);
 
-      if (!options.key) {
-        throw new Error("Razorpay Key is missing in frontend!");
-      }
-
-      const rzp = new (window as any).Razorpay(options);
-      
-      // Handle payment failure explicitly
-      rzp.on("payment.failed", function (response: any) {
-        console.error("Payment Failed response:", response.error);
-        alert(`Payment failed! Reason: ${response.error.description}`);
-        setState("roasted");
-      });
-
-      rzp.open();
+      // Redirect to manual Razorpay Payment Link
+      window.location.href = "https://rzp.io/rzp/ZGnECyZ";
     } catch (err: any) {
       alert("Error initiating payment: " + err.message);
       setState("roasted");
