@@ -219,8 +219,11 @@ export default function Home() {
       // Save the pending order ID to localStorage
       localStorage.setItem("pending_order_id", id);
 
-      // Redirect to manual Razorpay Payment Link
-      window.location.href = process.env.NEXT_PUBLIC_RAZORPAY_PAYMENT_LINK || "https://rzp.io/rzp/ZGnECyZ";
+      // Open Razorpay Payment Link in a new tab
+      window.open(process.env.NEXT_PUBLIC_RAZORPAY_PAYMENT_LINK || "https://rzp.io/rzp/ZGnECyZ", "_blank");
+
+      // Navigate current tab to success page (results start loading immediately)
+      router.push("/success");
     } catch (err: any) {
       alert("Error initiating payment: " + err.message);
       setState("roasted");
