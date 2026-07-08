@@ -5,47 +5,23 @@ import Script from "next/script";
 import ReactMarkdown from "react-markdown";
 import { useRouter } from "next/navigation";
 import * as htmlToImage from "html-to-image";
-import { motion, useMotionValue, useTransform, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 
 function TiltCard({ children, onClick, onDragOver, onDragLeave, onDrop, isLocked, borderClass }: any) {
-  const x = useMotionValue(0);
-  const y = useMotionValue(0);
-
-  const rotateX = useTransform(y, [-150, 150], [10, -10]);
-  const rotateY = useTransform(x, [-150, 150], [-10, 10]);
-
-  function handleMouse(event: React.MouseEvent<HTMLDivElement>) {
-    const rect = event.currentTarget.getBoundingClientRect();
-    const centerX = rect.left + rect.width / 2;
-    const centerY = rect.top + rect.height / 2;
-    x.set(event.clientX - centerX);
-    y.set(event.clientY - centerY);
-  }
-
-  function handleMouseLeave() {
-    x.set(0);
-    y.set(0);
-  }
-
   return (
-    <motion.div
-      style={{ rotateX, rotateY, transformStyle: "preserve-3d" }}
-      transition={{ type: "spring", stiffness: 400, damping: 30, mass: 0.5 }}
-      onMouseMove={handleMouse}
-      onMouseLeave={handleMouseLeave}
+    <div
       onClick={onClick}
       onDragOver={onDragOver}
       onDragLeave={onDragLeave}
       onDrop={onDrop}
-      className={`relative h-64 rounded-2xl flex flex-col items-center justify-center p-8 text-center cursor-pointer bg-black/60 backdrop-blur-2xl border transition-colors duration-300 ${
-        isLocked ? 'border-green-500 shadow-[0_0_30px_rgba(34,197,94,0.3)]' : borderClass || 'border-white/10 hover:border-white/30'
+      className={`relative h-64 rounded-2xl flex flex-col items-center justify-center p-8 text-center cursor-pointer bg-gray-950/90 border transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] ${
+        isLocked ? 'border-green-500 shadow-[0_0_30px_rgba(34,197,94,0.3)] scale-[0.98]' : borderClass || 'border-white/10 hover:border-white/30'
       }`}
-      animate={isLocked ? { scale: 0.98 } : { scale: 1 }}
     >
-      <div style={{ transform: "translateZ(60px)" }} className="w-full flex flex-col items-center">
+      <div className="w-full flex flex-col items-center">
         {children}
       </div>
-    </motion.div>
+    </div>
   );
 }
 
@@ -309,17 +285,15 @@ export default function Home() {
   const isReady = resumeText.trim().length > 10 && targetRole.length > 0;
 
   return (
-    <div className="min-h-screen bg-black text-gray-100 flex flex-col items-center py-16 px-4 font-sans overflow-hidden relative" style={{ perspective: "1000px" }}>
+    <div className="min-h-screen bg-black text-gray-100 flex flex-col items-center py-16 px-4 font-sans overflow-hidden relative">
       
       {/* 1. THE BREATHING BACKGROUND & SCATTERED EMOJIS — CSS-only for performance */}
-      <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none mix-blend-screen opacity-60">
-        <div className="absolute top-[-10%] left-[-10%] w-[60%] h-[60%] rounded-full bg-cyan-900/30 blur-[120px] animate-[drift1_20s_ease-in-out_infinite]" />
-        <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[70%] rounded-full bg-purple-900/20 blur-[120px] animate-[drift2_25s_ease-in-out_infinite]" />
-        <div className="absolute top-[30%] left-[40%] w-[40%] h-[40%] rounded-full bg-blue-900/20 blur-[120px] animate-[drift3_15s_ease-in-out_infinite]" />
+      <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none opacity-50">
+        <div className="absolute top-[-10%] left-[-10%] w-[60%] h-[60%] rounded-full bg-cyan-900/30 blur-[80px] animate-[drift1_20s_ease-in-out_infinite]" />
+        <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[70%] rounded-full bg-purple-900/20 blur-[80px] animate-[drift2_25s_ease-in-out_infinite]" />
         <div className="absolute top-[20%] left-[10%] text-5xl opacity-30 animate-[float_6s_ease-in-out_infinite]">💀</div>
         <div className="absolute top-[60%] right-[15%] text-6xl opacity-20 animate-[float_8s_ease-in-out_infinite_1s]">🔥</div>
         <div className="absolute bottom-[20%] left-[20%] text-5xl opacity-30 animate-[float_5s_ease-in-out_infinite_0.5s]">📉</div>
-        <div className="absolute top-[15%] right-[30%] text-4xl opacity-20 animate-[float_7s_ease-in-out_infinite_2s]">🤡</div>
       </div>
 
       <Script src="https://checkout.razorpay.com/v1/checkout.js" strategy="lazyOnload" />
@@ -340,7 +314,7 @@ export default function Home() {
               <select 
                 value={targetRole} 
                 onChange={(e) => setTargetRole(e.target.value)}
-                className={`w-full bg-white/5 border border-white/20 rounded-xl p-4 outline-none focus:border-cyan-500 transition-colors backdrop-blur-md appearance-none text-center font-bold text-lg cursor-pointer ${targetRole ? 'text-white' : 'text-gray-500'}`}
+                className={`w-full bg-gray-900/80 border border-white/20 rounded-xl p-4 outline-none focus:border-cyan-500 transition-colors appearance-none text-center font-bold text-lg cursor-pointer ${targetRole ? 'text-white' : 'text-gray-500'}`}
               >
                 <option value="" disabled className="bg-gray-900">Select your target role...</option>
                 {roles.map(r => <option key={r} value={r} className="bg-gray-900">{r}</option>)}
@@ -366,7 +340,7 @@ export default function Home() {
                       backgroundColor: isSelected ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.5)",
                       color: isSelected ? "#fff" : "#9ca3af"
                     }}
-                    className="flex-1 py-4 px-6 border-2 rounded-xl text-sm font-bold uppercase tracking-widest backdrop-blur-md transition-colors"
+                    className="flex-1 py-4 px-6 border-2 rounded-xl text-sm font-bold uppercase tracking-widest transition-colors"
                   >
                     {opt.label}
                   </motion.button>
@@ -413,7 +387,7 @@ export default function Home() {
                     </TiltCard>
                   </>
                 ) : (
-                  <div className="h-64 relative bg-black/60 backdrop-blur-2xl border border-white/10 border-t-0 rounded-b-2xl p-4 flex flex-col">
+                  <div className="h-64 relative bg-gray-950/90 border border-white/10 border-t-0 rounded-b-2xl p-4 flex flex-col">
                     <textarea 
                       value={resumeText} onChange={(e) => setResumeText(e.target.value)}
                       placeholder="Paste your entire resume text here..."
@@ -459,7 +433,7 @@ export default function Home() {
                     </TiltCard>
                   </>
                 ) : (
-                  <div className="h-64 relative bg-black/60 backdrop-blur-2xl border border-white/10 border-t-0 rounded-b-2xl p-4 flex flex-col">
+                  <div className="h-64 relative bg-gray-950/90 border border-white/10 border-t-0 rounded-b-2xl p-4 flex flex-col">
                     <textarea 
                       value={jdText} onChange={(e) => setJdText(e.target.value)}
                       placeholder="Paste Job Description text here (Optional)..."
@@ -487,7 +461,7 @@ export default function Home() {
                 }}
                 title={!targetRole ? "Please select a target role first" : !resumeText.trim() ? "Please upload or paste your resume" : ""}
                 transition={{ type: "spring", stiffness: 400, damping: 20 }}
-                className="relative text-xl font-black py-5 px-16 rounded-2xl uppercase tracking-[0.2em] transition-all border-2 backdrop-blur-md"
+                className="relative text-xl font-black py-5 px-16 rounded-2xl uppercase tracking-[0.2em] transition-all border-2"
               >
                 {isReady ? "Destroy My Self Esteem" : !targetRole ? "Select a Role First" : "Awaiting Resume"}
               </motion.button>
@@ -533,7 +507,7 @@ export default function Home() {
         <AnimatePresence>
           {(state === "roasted" || state === "fixing") && (
             <motion.div initial={{ opacity: 0, y: 50 }} animate={{ opacity: 1, y: 0 }} transition={{ type: "spring", damping: 25, stiffness: 200 }} className="w-full max-w-4xl">
-              <div id="roast-capture" className="bg-black/50 border border-white/10 rounded-3xl p-8 md:p-12 relative overflow-hidden backdrop-blur-3xl shadow-[0_0_50px_rgba(0,0,0,0.5)] flex flex-col">
+              <div id="roast-capture" className="bg-gray-950/95 border border-white/10 rounded-3xl p-8 md:p-12 relative overflow-hidden shadow-[0_0_50px_rgba(0,0,0,0.5)] flex flex-col">
                 <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-white/30 to-transparent"></div>
                 
                 <div className="flex flex-col md:flex-row justify-between md:items-end border-b border-white/10 pb-6 mb-8 gap-4">
