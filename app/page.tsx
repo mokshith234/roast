@@ -55,7 +55,7 @@ export default function Home() {
   const [intensity, setIntensity] = useState<"soft" | "nuclear" | "ender">("nuclear");
   const [loadingStep, setLoadingStep] = useState(0);
   
-  const [targetRole, setTargetRole] = useState("Software Engineer");
+  const [targetRole, setTargetRole] = useState("");
 
   const [resumeMode, setResumeMode] = useState<"pdf" | "text">("pdf");
   const [resumeName, setResumeName] = useState<string | null>(null);
@@ -306,20 +306,20 @@ export default function Home() {
   ];
 
   const roles = ["Software Engineer", "Data Analyst", "Product Manager", "Marketing", "Design", "Finance", "Other"];
-  const isReady = resumeText.trim().length > 10;
+  const isReady = resumeText.trim().length > 10 && targetRole.length > 0;
 
   return (
     <div className="min-h-screen bg-black text-gray-100 flex flex-col items-center py-16 px-4 font-sans overflow-hidden relative" style={{ perspective: "1000px" }}>
       
-      {/* 1. THE BREATHING BACKGROUND & SCATTERED EMOJIS */}
+      {/* 1. THE BREATHING BACKGROUND & SCATTERED EMOJIS — CSS-only for performance */}
       <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none mix-blend-screen opacity-60">
-        <motion.div animate={{ x: [0, 50, -30, 0], y: [0, -40, 20, 0] }} transition={{ duration: 20, repeat: Infinity, ease: "easeInOut" }} className="absolute top-[-10%] left-[-10%] w-[60%] h-[60%] rounded-full bg-cyan-900/30 blur-[120px]" />
-        <motion.div animate={{ x: [0, -60, 40, 0], y: [0, 50, -30, 0] }} transition={{ duration: 25, repeat: Infinity, ease: "easeInOut" }} className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[70%] rounded-full bg-purple-900/20 blur-[120px]" />
-        <motion.div animate={{ x: [0, 30, -50, 0], y: [0, 30, -50, 0] }} transition={{ duration: 15, repeat: Infinity, ease: "easeInOut" }} className="absolute top-[30%] left-[40%] w-[40%] h-[40%] rounded-full bg-blue-900/20 blur-[120px]" />
-        <motion.div animate={{ y: [0, -20, 0], rotate: [0, 10, -10, 0] }} transition={{ duration: 6, repeat: Infinity }} className="absolute top-[20%] left-[10%] text-5xl opacity-30 drop-shadow-[0_0_10px_rgba(255,255,255,0.5)]">💀</motion.div>
-        <motion.div animate={{ y: [0, -30, 0], rotate: [0, -15, 10, 0] }} transition={{ duration: 8, repeat: Infinity }} className="absolute top-[60%] right-[15%] text-6xl opacity-20 drop-shadow-[0_0_10px_rgba(255,255,255,0.5)]">🔥</motion.div>
-        <motion.div animate={{ y: [0, -25, 0], rotate: [0, 5, -5, 0] }} transition={{ duration: 5, repeat: Infinity }} className="absolute bottom-[20%] left-[20%] text-5xl opacity-30 drop-shadow-[0_0_10px_rgba(255,255,255,0.5)]">📉</motion.div>
-        <motion.div animate={{ y: [0, -40, 0], rotate: [0, -20, 20, 0] }} transition={{ duration: 7, repeat: Infinity }} className="absolute top-[15%] right-[30%] text-4xl opacity-20 drop-shadow-[0_0_10px_rgba(255,255,255,0.5)]">🤡</motion.div>
+        <div className="absolute top-[-10%] left-[-10%] w-[60%] h-[60%] rounded-full bg-cyan-900/30 blur-[120px] animate-[drift1_20s_ease-in-out_infinite]" />
+        <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[70%] rounded-full bg-purple-900/20 blur-[120px] animate-[drift2_25s_ease-in-out_infinite]" />
+        <div className="absolute top-[30%] left-[40%] w-[40%] h-[40%] rounded-full bg-blue-900/20 blur-[120px] animate-[drift3_15s_ease-in-out_infinite]" />
+        <div className="absolute top-[20%] left-[10%] text-5xl opacity-30 animate-[float_6s_ease-in-out_infinite]">💀</div>
+        <div className="absolute top-[60%] right-[15%] text-6xl opacity-20 animate-[float_8s_ease-in-out_infinite_1s]">🔥</div>
+        <div className="absolute bottom-[20%] left-[20%] text-5xl opacity-30 animate-[float_5s_ease-in-out_infinite_0.5s]">📉</div>
+        <div className="absolute top-[15%] right-[30%] text-4xl opacity-20 animate-[float_7s_ease-in-out_infinite_2s]">🤡</div>
       </div>
 
       <Script src="https://checkout.razorpay.com/v1/checkout.js" strategy="lazyOnload" />
@@ -340,8 +340,9 @@ export default function Home() {
               <select 
                 value={targetRole} 
                 onChange={(e) => setTargetRole(e.target.value)}
-                className="w-full bg-white/5 border border-white/20 text-white rounded-xl p-4 outline-none focus:border-cyan-500 transition-colors backdrop-blur-md appearance-none text-center font-bold text-lg cursor-pointer"
+                className={`w-full bg-white/5 border border-white/20 rounded-xl p-4 outline-none focus:border-cyan-500 transition-colors backdrop-blur-md appearance-none text-center font-bold text-lg cursor-pointer ${targetRole ? 'text-white' : 'text-gray-500'}`}
               >
+                <option value="" disabled className="bg-gray-900">Select your target role...</option>
                 {roles.map(r => <option key={r} value={r} className="bg-gray-900">{r}</option>)}
               </select>
             </motion.div>
@@ -484,10 +485,11 @@ export default function Home() {
                     : "0 0 0px rgba(0,0,0,0)",
                   color: isReady ? "#fff" : "rgba(255,255,255,0.3)"
                 }}
+                title={!targetRole ? "Please select a target role first" : !resumeText.trim() ? "Please upload or paste your resume" : ""}
                 transition={{ type: "spring", stiffness: 400, damping: 20 }}
                 className="relative text-xl font-black py-5 px-16 rounded-2xl uppercase tracking-[0.2em] transition-all border-2 backdrop-blur-md"
               >
-                {isReady ? "Destroy My Self Esteem" : "Awaiting Target"}
+                {isReady ? "Destroy My Self Esteem" : !targetRole ? "Select a Role First" : "Awaiting Resume"}
               </motion.button>
             </motion.div>
           </motion.div>
@@ -586,6 +588,10 @@ export default function Home() {
         .custom-scrollbar::-webkit-scrollbar-track { background: rgba(255,255,255,0.05); border-radius: 8px; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 8px; }
         .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.3); }
+        @keyframes drift1 { 0%,100% { transform: translate(0,0); } 33% { transform: translate(50px,-40px); } 66% { transform: translate(-30px,20px); } }
+        @keyframes drift2 { 0%,100% { transform: translate(0,0); } 33% { transform: translate(-60px,50px); } 66% { transform: translate(40px,-30px); } }
+        @keyframes drift3 { 0%,100% { transform: translate(0,0); } 33% { transform: translate(30px,30px); } 66% { transform: translate(-50px,-50px); } }
+        @keyframes float { 0%,100% { transform: translateY(0) rotate(0deg); } 50% { transform: translateY(-20px) rotate(5deg); } }
       `}} />
     </div>
   );

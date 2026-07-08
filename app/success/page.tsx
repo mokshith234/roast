@@ -138,6 +138,45 @@ function SuccessContent() {
   const [activeTab, setActiveTab] = useState<"resume" | "action">("resume");
   const resumeRef = useRef<HTMLDivElement>(null);
 
+  // Feedback state
+  const [feedbackRating, setFeedbackRating] = useState(0);
+  const [feedbackHover, setFeedbackHover] = useState(0);
+  const [feedbackText, setFeedbackText] = useState("");
+  const [feedbackSubmitted, setFeedbackSubmitted] = useState(false);
+  const [feedbackSubmitting, setFeedbackSubmitting] = useState(false);
+
+  // Check if feedback was already submitted
+  useEffect(() => {
+    const orderId = searchParams.get("orderId");
+    if (orderId && localStorage.getItem(`feedback_${orderId}`)) {
+      setFeedbackSubmitted(true);
+    }
+  }, [searchParams]);
+
+  const handleFeedbackSubmit = async () => {
+    const orderId = searchParams.get("orderId");
+    if (!orderId || feedbackRating === 0) return;
+
+    setFeedbackSubmitting(true);
+    try {
+      await fetch("/api/feedback", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          orderId,
+          rating: feedbackRating,
+          feedback: feedbackText.trim() || null,
+        }),
+      });
+      localStorage.setItem(`feedback_${orderId}`, "true");
+      setFeedbackSubmitted(true);
+    } catch {
+      // Silent fail — don't disrupt the user experience for feedback
+    } finally {
+      setFeedbackSubmitting(false);
+    }
+  };
+
   // Warn user before closing tab while loading
   useEffect(() => {
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
@@ -622,13 +661,84 @@ function SuccessContent() {
               </motion.div>
             )}
 
+            {/* ── FEEDBACK SECTION ── */}
+            {isReady && !feedbackSubmitted && (
+              <motion.div
+                initial={{ opacity: 0, y: 30 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 1.2 }}
+                className="w-full max-w-lg mt-16 no-print"
+              >
+                <div className="bg-white/5 border border-white/10 rounded-2xl p-6 md:p-8 backdrop-blur-md">
+                  <div className="text-center mb-6">
+                    <span className="text-3xl mb-3 block">🙏</span>
+                    <h3 className="text-lg font-black text-white uppercase tracking-widest mb-2">Thank You for Choosing Us!</h3>
+                    <p className="text-gray-400 text-sm">Your feedback helps us improve. How was your experience?</p>
+                  </div>
+
+                  {/* Star Rating */}
+                  <div className="flex justify-center gap-2 mb-6">
+                    {[1, 2, 3, 4, 5].map((star) => (
+                      <button
+                        key={star}
+                        onClick={() => setFeedbackRating(star)}
+                        onMouseEnter={() => setFeedbackHover(star)}
+                        onMouseLeave={() => setFeedbackHover(0)}
+                        className="text-4xl transition-transform hover:scale-125 focus:outline-none"
+                      >
+                        <span className={`${(feedbackHover || feedbackRating) >= star ? 'opacity-100' : 'opacity-30'} transition-opacity`}>
+                          ⭐
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+
+                  {feedbackRating > 0 && (
+                    <motion.div
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: "auto" }}
+                      className="space-y-4"
+                    >
+                      <textarea
+                        value={feedbackText}
+                        onChange={(e) => setFeedbackText(e.target.value)}
+                        placeholder={feedbackRating >= 4 ? "What did you love about it? (optional)" : "How can we improve? (optional)"}
+                        className="w-full bg-white/5 border border-white/10 rounded-xl p-4 text-white placeholder-gray-600 resize-none focus:outline-none focus:border-cyan-500/50 transition-colors h-24"
+                      />
+                      <motion.button
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                        onClick={handleFeedbackSubmit}
+                        disabled={feedbackSubmitting}
+                        className="w-full py-3 rounded-xl font-bold uppercase tracking-widest text-sm bg-white/10 border border-white/20 text-white hover:bg-white/20 transition-colors disabled:opacity-50"
+                      >
+                        {feedbackSubmitting ? "Sending..." : "Submit Feedback"}
+                      </motion.button>
+                    </motion.div>
+                  )}
+                </div>
+              </motion.div>
+            )}
+
+            {/* Feedback already submitted */}
+            {isReady && feedbackSubmitted && (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className="mt-16 text-center no-print"
+              >
+                <span className="text-2xl">💚</span>
+                <p className="text-gray-500 text-sm font-medium mt-2">Thanks for your feedback!</p>
+              </motion.div>
+            )}
+
             {/* Back to home */}
             <motion.a
               href="/"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 1 }}
-              className="mt-16 mb-8 text-gray-600 hover:text-white font-bold text-sm uppercase tracking-widest transition-colors no-print"
+              className="mt-10 mb-8 text-gray-600 hover:text-white font-bold text-sm uppercase tracking-widest transition-colors no-print"
             >
               ← Roast Another Resume
             </motion.a>
