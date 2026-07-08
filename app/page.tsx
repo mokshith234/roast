@@ -220,7 +220,7 @@ export default function Home() {
       localStorage.setItem("pending_order_id", id);
 
       // Redirect to manual Razorpay Payment Link
-      window.location.href = "https://rzp.io/rzp/ZGnECyZ";
+      window.location.href = process.env.NEXT_PUBLIC_RAZORPAY_PAYMENT_LINK || "https://rzp.io/rzp/ZGnECyZ";
     } catch (err: any) {
       alert("Error initiating payment: " + err.message);
       setState("roasted");
